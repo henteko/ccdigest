@@ -29,14 +29,14 @@ const showFormatOptions = (cmd: Command) =>
 
 showFormatOptions(
   program
-    .command('show <session-id>')
-    .description('Display session as Markdown (stdout)')
+    .command('show <session-ids...>')
+    .description('Display session(s) as Markdown (stdout). Multiple IDs are merged chronologically.')
 ).action(runShow);
 
 showFormatOptions(
   program
-    .command('export <session-id>')
-    .description('Export session to a Markdown file')
+    .command('export <session-ids...>')
+    .description('Export session(s) to a Markdown file. Multiple IDs are merged chronologically.')
     .requiredOption('-o, --output <file>', 'Output file path')
 ).action(runExport);
 

@@ -151,6 +151,7 @@ export interface ConversationTurn {
   userMessage: string;
   assistantMessages: AssistantMessage[];
   durationMs?: number;
+  timestamp?: string;
 }
 
 export interface ParsedSession {

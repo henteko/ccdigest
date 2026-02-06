@@ -41,10 +41,21 @@ export function formatSession(
 function renderHeader(session: ParsedSession): string {
   const { metadata } = session;
   const lines: string[] = [];
+  const isMerged = metadata.sessionId.includes(',');
 
-  lines.push('# Session Report');
-  lines.push('');
-  lines.push(`- **Session ID**: \`${metadata.sessionId}\``);
+  if (isMerged) {
+    lines.push('# Merged Session Report');
+    lines.push('');
+    const ids = metadata.sessionId.split(',');
+    lines.push(`- **Sessions** (${ids.length}):`);
+    for (const id of ids) {
+      lines.push(`  - \`${id}\``);
+    }
+  } else {
+    lines.push('# Session Report');
+    lines.push('');
+    lines.push(`- **Session ID**: \`${metadata.sessionId}\``);
+  }
   lines.push(`- **Project**: \`${metadata.project}\``);
 
   if (metadata.branch) {

@@ -142,6 +142,7 @@ export async function parseSession(filePath: string): Promise<ParsedSession> {
           turnNumber: turns.length + 1,
           userMessage: content,
           assistantMessages: [],
+          timestamp: ue.timestamp,
         };
       } else if (Array.isArray(content)) {
         // tool_result → same turn, fill in tool results
