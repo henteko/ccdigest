@@ -1,0 +1,25 @@
+{
+  "name": "flight-recorder",
+  "version": "0.1.0",
+  "description": "Format Claude Code session data into readable Markdown for team sharing and code review",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "flight-recorder": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "commander": "^13.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0",
+    "tsx": "^4.19.0",
+    "@types/node": "^22.0.0"
+  }
+}
