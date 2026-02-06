@@ -7,6 +7,7 @@ export interface SessionInfo {
   filePath: string;
   modifiedAt: Date;
   sizeBytes: number;
+  branch: string;
 }
 
 const CLAUDE_PROJECTS_DIR = path.join(os.homedir(), '.claude', 'projects');
@@ -38,6 +39,36 @@ export function getProjectDir(projectPath: string): string {
 }
 
 /**
+ * Extract the git branch from a JSONL session file by reading the first few lines.
+ * Returns an empty string if no gitBranch is found.
+ */
+export function extractBranch(filePath: string): string {
+  const MAX_BYTES = 4096;
+  const fd = fs.openSync(filePath, 'r');
+  try {
+    const buf = Buffer.alloc(MAX_BYTES);
+    const bytesRead = fs.readSync(fd, buf, 0, MAX_BYTES, 0);
+    const chunk = buf.toString('utf8', 0, bytesRead);
+    const lines = chunk.split('\n');
+
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      try {
+        const event = JSON.parse(line);
+        if (event.gitBranch) {
+          return event.gitBranch;
+        }
+      } catch {
+        // skip malformed lines
+      }
+    }
+  } finally {
+    fs.closeSync(fd);
+  }
+  return '';
+}
+
+/**
  * List all session JSONL files for a project, sorted by modification time (newest first).
  */
 export function listSessions(projectPath: string): SessionInfo[] {
@@ -64,6 +95,7 @@ export function listSessions(projectPath: string): SessionInfo[] {
       filePath,
       modifiedAt: stat.mtime,
       sizeBytes: stat.size,
+      branch: extractBranch(filePath),
     });
   }
 

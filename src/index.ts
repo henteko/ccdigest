@@ -15,6 +15,7 @@ program
   .command('list')
   .description('List available sessions')
   .option('--project <path>', 'Project path (defaults to cwd)')
+  .option('--branch <name>', 'Filter by git branch')
   .option('--json', 'Output as JSON')
   .action(runList);
 

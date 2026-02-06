@@ -5,6 +5,7 @@ import os from 'node:os';
 import {
   encodeProjectPath,
   decodeProjectPath,
+  extractBranch,
   listSessions,
   findSession,
 } from '../../src/core/session-store.js';
@@ -79,6 +80,27 @@ describe('listSessions', () => {
   });
 });
 
+describe('extractBranch', () => {
+  it('extracts gitBranch from fixture file', () => {
+    const fixturePath = path.join(__dirname, '..', 'fixtures', 'simple-session.jsonl');
+    expect(extractBranch(fixturePath)).toBe('main');
+  });
+
+  it('returns empty string when no gitBranch is present', () => {
+    const tmpFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'fr-branch-')), 'no-branch.jsonl');
+    fs.writeFileSync(tmpFile, '{"type":"user","message":{"role":"user","content":"hello"}}\n');
+    expect(extractBranch(tmpFile)).toBe('');
+    fs.rmSync(path.dirname(tmpFile), { recursive: true, force: true });
+  });
+
+  it('returns empty string for empty file', () => {
+    const tmpFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'fr-branch-')), 'empty.jsonl');
+    fs.writeFileSync(tmpFile, '');
+    expect(extractBranch(tmpFile)).toBe('');
+    fs.rmSync(path.dirname(tmpFile), { recursive: true, force: true });
+  });
+});
+
 describe('findSession', () => {
   it('throws on no match', () => {
     expect(() => findSession('/nonexistent', 'xyz')).toThrow(
@@ -98,6 +120,7 @@ describe('listSessions integration', () => {
       expect(s.filePath).toContain('.jsonl');
       expect(s.sizeBytes).toBeGreaterThan(0);
       expect(s.modifiedAt).toBeInstanceOf(Date);
+      expect(typeof s.branch).toBe('string');
     }
 
     // Should be sorted newest first
