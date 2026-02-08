@@ -60,6 +60,16 @@ ccdigest show --branch feature/login > branch.md
 | `--branch <name>` | Show all sessions for a git branch (show) / Filter by branch (list) |
 | `--no-filter` | Show all information (full paths, thinking blocks, tool results) |
 
+## Use Cases
+
+### Post Claude Code session log as a PR comment
+
+When you make changes with Claude Code and open a pull request, you can attach the session log as a PR comment for reviewers:
+
+```bash
+ccdigest show --branch $(git branch --show-current) | gh pr comment --body-file -
+```
+
 ## Development
 
 ```bash
