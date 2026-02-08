@@ -32,7 +32,17 @@ ccdigest list --json
 ccdigest show <session-id>
 ccdigest show <session-id-1> <session-id-2>  # merge multiple sessions
 ccdigest show --branch feature/login          # show all sessions for a branch
+ccdigest show <session-id> --no-filter        # show all information
 ```
+
+By default, `show` outputs a filtered view suitable for sharing:
+
+- **Project path** is shown as basename only (e.g. `my-project` instead of `/Users/you/dev/my-project`)
+- **Thinking blocks** are hidden
+- **Tool calls** are shown with relativized file paths
+- **Tool results** are hidden
+
+Use `--no-filter` to include all information (full paths, thinking blocks collapsed, tool results up to 50 lines).
 
 ### Export to file
 
@@ -48,10 +58,7 @@ ccdigest show --branch feature/login > branch.md
 |--------|-------------|
 | `--project <path>` | Project path (defaults to cwd) |
 | `--branch <name>` | Show all sessions for a git branch (show) / Filter by branch (list) |
-| `--no-thinking` | Hide thinking blocks |
-| `--show-thinking` | Show thinking blocks expanded |
-| `--no-tools` | Hide tool calls |
-| `--max-tool-lines <n>` | Max lines for tool results (default: 50) |
+| `--no-filter` | Show all information (full paths, thinking blocks, tool results) |
 
 ## Development
 
