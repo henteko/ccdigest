@@ -8,6 +8,7 @@ import {
   truncateLines,
   details,
   formatToolInput,
+  relativizePath,
 } from '../../src/formatter/templates.js';
 
 const FIXTURE_DIR = path.join(import.meta.dirname, '..', 'fixtures');
@@ -71,9 +72,40 @@ describe('details', () => {
   });
 });
 
+describe('relativizePath', () => {
+  it('relativizes a path under the project', () => {
+    expect(relativizePath('/Users/test/project/src/main.ts', '/Users/test/project'))
+      .toBe('src/main.ts');
+  });
+
+  it('returns the path as-is if not under the project', () => {
+    expect(relativizePath('/other/path/file.ts', '/Users/test/project'))
+      .toBe('/other/path/file.ts');
+  });
+
+  it('handles project path with trailing slash', () => {
+    expect(relativizePath('/Users/test/project/README.md', '/Users/test/project/'))
+      .toBe('README.md');
+  });
+
+  it('returns . for exact project path match', () => {
+    expect(relativizePath('/Users/test/project', '/Users/test/project'))
+      .toBe('.');
+  });
+
+  it('returns original path when projectPath is empty', () => {
+    expect(relativizePath('/Users/test/project/file.ts', ''))
+      .toBe('/Users/test/project/file.ts');
+  });
+});
+
 describe('formatToolInput', () => {
-  it('formats Read tool input', () => {
+  it('formats Read tool input with full path', () => {
     expect(formatToolInput('Read', { file_path: '/foo/bar.ts' })).toBe('`/foo/bar.ts`');
+  });
+
+  it('formats Read tool input with relativized path', () => {
+    expect(formatToolInput('Read', { file_path: '/foo/bar.ts' }, '/foo')).toBe('`bar.ts`');
   });
 
   it('formats Bash tool input', () => {
@@ -87,62 +119,87 @@ describe('formatToolInput', () => {
 
 // --- Full formatter ---
 
-describe('formatSession', () => {
-  it('formats simple session to markdown', async () => {
+describe('formatSession (default filter mode)', () => {
+  it('shows project basename only', async () => {
     const session = await parseSession(SIMPLE_SESSION);
-    const md = formatSession(session);
+    const md = formatSession(session, { projectPath: '/Users/test/project' });
 
-    // Header
-    expect(md).toContain('# Session Report');
-    expect(md).toContain('**Session ID**: `test-session-001`');
-    expect(md).toContain('**Project**: `/Users/test/project`');
-    expect(md).toContain('**Branch**: `main`');
-    expect(md).toContain('**Model**: `claude-opus-4-6`');
-    expect(md).toContain('**Turns**: 2');
-
-    // Turn 1
-    expect(md).toContain('## Turn 1');
-    expect(md).toContain('> Hello, please read the README file.');
-    expect(md).toContain('### Assistant');
-    expect(md).toContain('<summary>Thinking</summary>');
-    expect(md).toContain('user wants me to read');
-    expect(md).toContain("I'll read the README for you.");
-    expect(md).toContain('**Tool: Read** (`/Users/test/project/README.md`)');
-    expect(md).toContain('<summary>Result');
-
-    // Turn 2
-    expect(md).toContain('## Turn 2');
-    expect(md).toContain('> Now add a Feature 3 to the README.');
-    expect(md).toContain("I've added Feature 3");
+    expect(md).toContain('**Project**: `project`');
+    expect(md).not.toContain('**Project**: `/Users/test/project`');
   });
 
-  it('hides thinking with hidden option', async () => {
+  it('hides thinking blocks', async () => {
     const session = await parseSession(SIMPLE_SESSION);
-    const md = formatSession(session, { showThinking: 'hidden' });
+    const md = formatSession(session, { projectPath: '/Users/test/project' });
 
     expect(md).not.toContain('<summary>Thinking</summary>');
     expect(md).not.toContain('user wants me to read');
   });
 
-  it('expands thinking with expanded option', async () => {
+  it('shows tool names with relativized paths', async () => {
     const session = await parseSession(SIMPLE_SESSION);
-    const md = formatSession(session, { showThinking: 'expanded' });
+    const md = formatSession(session, { projectPath: '/Users/test/project' });
 
-    expect(md).toContain('<details open><summary>Thinking</summary>');
+    expect(md).toContain('**Tool: Read** (`README.md`)');
   });
 
-  it('hides tools with showTools=false', async () => {
+  it('hides tool results', async () => {
     const session = await parseSession(SIMPLE_SESSION);
-    const md = formatSession(session, { showTools: false });
+    const md = formatSession(session, { projectPath: '/Users/test/project' });
 
-    expect(md).not.toContain('**Tool: Read**');
+    expect(md).not.toContain('<summary>Result');
+    expect(md).not.toContain('This is a test project');
   });
 
-  it('respects maxToolLines option', async () => {
+  it('shows user and assistant messages', async () => {
     const session = await parseSession(SIMPLE_SESSION);
-    const md = formatSession(session, { maxToolLines: 3 });
+    const md = formatSession(session, { projectPath: '/Users/test/project' });
 
-    // The tool result has 7 lines, should be truncated to 3
-    expect(md).toContain('showing first 3');
+    expect(md).toContain('> Hello, please read the README file.');
+    expect(md).toContain("I'll read the README for you.");
+    expect(md).toContain("I've added Feature 3");
+  });
+
+  it('shows header info', async () => {
+    const session = await parseSession(SIMPLE_SESSION);
+    const md = formatSession(session, { projectPath: '/Users/test/project' });
+
+    expect(md).toContain('# Session Report');
+    expect(md).toContain('**Session ID**: `test-session-001`');
+    expect(md).toContain('**Branch**: `main`');
+    expect(md).toContain('**Model**: `claude-opus-4-6`');
+    expect(md).toContain('**Turns**: 2');
+  });
+});
+
+describe('formatSession (no-filter mode)', () => {
+  it('shows full project path', async () => {
+    const session = await parseSession(SIMPLE_SESSION);
+    const md = formatSession(session, { noFilter: true, projectPath: '/Users/test/project' });
+
+    expect(md).toContain('**Project**: `/Users/test/project`');
+  });
+
+  it('shows thinking blocks collapsed', async () => {
+    const session = await parseSession(SIMPLE_SESSION);
+    const md = formatSession(session, { noFilter: true, projectPath: '/Users/test/project' });
+
+    expect(md).toContain('<details><summary>Thinking</summary>');
+    expect(md).toContain('user wants me to read');
+  });
+
+  it('shows tool names with full paths', async () => {
+    const session = await parseSession(SIMPLE_SESSION);
+    const md = formatSession(session, { noFilter: true, projectPath: '/Users/test/project' });
+
+    expect(md).toContain('**Tool: Read** (`/Users/test/project/README.md`)');
+  });
+
+  it('shows tool results', async () => {
+    const session = await parseSession(SIMPLE_SESSION);
+    const md = formatSession(session, { noFilter: true, projectPath: '/Users/test/project' });
+
+    expect(md).toContain('<summary>Result');
+    expect(md).toContain('This is a test project');
   });
 });

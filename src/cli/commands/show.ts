@@ -39,7 +39,7 @@ export async function runShow(
       ? mergeSessions(parsedSessions)
       : parsedSessions[0];
 
-    const formatOpts = resolveFormatOptions(options);
+    const formatOpts = resolveFormatOptions(options, projectPath);
     const markdown = formatSession(merged, formatOpts);
 
     process.stdout.write(markdown);

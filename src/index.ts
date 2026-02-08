@@ -18,20 +18,13 @@ program
   .option('--json', 'Output as JSON')
   .action(runList);
 
-const showFormatOptions = (cmd: Command) =>
-  cmd
-    .option('--no-thinking', 'Hide thinking blocks')
-    .option('--show-thinking', 'Show thinking blocks expanded')
-    .option('--no-tools', 'Hide tool calls')
-    .option('--max-tool-lines <n>', 'Max lines for tool results (default: 50)')
-    .option('--project <path>', 'Project path (defaults to cwd)');
-
-showFormatOptions(
-  program
-    .command('show [session-ids...]')
-    .description('Display session(s) as Markdown (stdout). Multiple IDs are merged chronologically.')
-    .option('--branch <name>', 'Show all sessions for a git branch')
-).action(runShow);
+program
+  .command('show [session-ids...]')
+  .description('Display session(s) as Markdown (stdout). Multiple IDs are merged chronologically.')
+  .option('--branch <name>', 'Show all sessions for a git branch')
+  .option('--no-filter', 'Show all information (full paths, thinking, tool results)')
+  .option('--project <path>', 'Project path (defaults to cwd)')
+  .action(runShow);
 
 
 program.parse();

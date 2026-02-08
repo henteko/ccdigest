@@ -47,17 +47,40 @@ export function details(summary: string, content: string, open = false): string 
 }
 
 /**
- * Format a tool input for display. Extracts the most relevant parameter.
+ * Relativize a file path against the project path.
+ * If the file path starts with the project path, return the relative portion.
  */
-export function formatToolInput(name: string, input: Record<string, unknown>): string {
+export function relativizePath(filePath: string, projectPath: string): string {
+  if (!projectPath) return filePath;
+  // Ensure projectPath ends with separator for correct prefix matching
+  const prefix = projectPath.endsWith('/') ? projectPath : projectPath + '/';
+  if (filePath.startsWith(prefix)) {
+    return filePath.slice(prefix.length);
+  }
+  if (filePath === projectPath) {
+    return '.';
+  }
+  return filePath;
+}
+
+/**
+ * Format a tool input for display. Extracts the most relevant parameter.
+ * When projectPath is provided, file paths are relativized.
+ */
+export function formatToolInput(name: string, input: Record<string, unknown>, projectPath?: string): string {
+  const formatPath = (p: unknown): string => {
+    const s = String(p);
+    return projectPath ? relativizePath(s, projectPath) : s;
+  };
+
   // Show the most relevant parameter based on tool name
   switch (name) {
     case 'Read':
-      return input.file_path ? `\`${input.file_path}\`` : '';
+      return input.file_path ? `\`${formatPath(input.file_path)}\`` : '';
     case 'Write':
-      return input.file_path ? `\`${input.file_path}\`` : '';
+      return input.file_path ? `\`${formatPath(input.file_path)}\`` : '';
     case 'Edit':
-      return input.file_path ? `\`${input.file_path}\`` : '';
+      return input.file_path ? `\`${formatPath(input.file_path)}\`` : '';
     case 'Bash':
       return input.command ? `\`${String(input.command).substring(0, 100)}\`` : '';
     case 'Glob':

@@ -164,7 +164,6 @@ export interface ParsedSession {
 // ============================================================
 
 export interface FormatOptions {
-  showThinking: 'collapsed' | 'expanded' | 'hidden';
-  showTools: boolean;
-  maxToolLines: number;
+  noFilter: boolean;        // true = show all information
+  projectPath: string;      // for path relativization
 }

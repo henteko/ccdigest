@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type {
   ParsedSession,
   ConversationTurn,
@@ -14,10 +15,12 @@ import {
 } from './templates.js';
 
 const DEFAULT_OPTIONS: FormatOptions = {
-  showThinking: 'collapsed',
-  showTools: true,
-  maxToolLines: 50,
+  noFilter: false,
+  projectPath: '',
 };
+
+/** Max lines for tool results in no-filter mode */
+const MAX_TOOL_RESULT_LINES = 50;
 
 /**
  * Format a parsed session into Markdown.
@@ -29,7 +32,7 @@ export function formatSession(
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const parts: string[] = [];
 
-  parts.push(renderHeader(session));
+  parts.push(renderHeader(session, opts));
 
   for (const turn of session.turns) {
     parts.push(renderTurn(turn, opts));
@@ -38,7 +41,7 @@ export function formatSession(
   return parts.join('\n\n---\n\n') + '\n';
 }
 
-function renderHeader(session: ParsedSession): string {
+function renderHeader(session: ParsedSession, opts: FormatOptions): string {
   const { metadata } = session;
   const lines: string[] = [];
   const isMerged = metadata.sessionId.includes(',');
@@ -56,7 +59,12 @@ function renderHeader(session: ParsedSession): string {
     lines.push('');
     lines.push(`- **Session ID**: \`${metadata.sessionId}\``);
   }
-  lines.push(`- **Project**: \`${metadata.project}\``);
+
+  // Filter mode: show basename only; no-filter: show full path
+  const projectDisplay = opts.noFilter
+    ? metadata.project
+    : path.basename(metadata.project);
+  lines.push(`- **Project**: \`${projectDisplay}\``);
 
   if (metadata.branch) {
     lines.push(`- **Branch**: \`${metadata.branch}\``);
@@ -122,14 +130,10 @@ function renderAssistantMessage(
 
   parts.push('### Assistant');
 
-  // Thinking blocks
-  if (opts.showThinking !== 'hidden' && msg.thinkingBlocks.length > 0) {
+  // Thinking blocks: hidden in filter mode, collapsed in no-filter mode
+  if (opts.noFilter && msg.thinkingBlocks.length > 0) {
     const thinking = msg.thinkingBlocks.join('\n\n');
-    if (opts.showThinking === 'expanded') {
-      parts.push(details('Thinking', thinking, true));
-    } else {
-      parts.push(details('Thinking', thinking, false));
-    }
+    parts.push(details('Thinking', thinking, false));
   }
 
   // Text blocks
@@ -137,29 +141,35 @@ function renderAssistantMessage(
     parts.push(text);
   }
 
-  // Tool calls
-  if (opts.showTools) {
-    for (const tc of msg.toolCalls) {
-      parts.push(renderToolCall(tc, opts));
-    }
+  // Tool calls: always shown
+  for (const tc of msg.toolCalls) {
+    parts.push(renderToolCall(tc, opts));
   }
 
   return parts.join('\n\n');
 }
 
 function renderToolCall(tc: ToolCall, opts: FormatOptions): string {
-  const inputDisplay = formatToolInput(tc.name, tc.input);
+  // In filter mode, relativize paths; in no-filter mode, show full paths
+  const projectPath = opts.noFilter ? undefined : opts.projectPath;
+  const inputDisplay = formatToolInput(tc.name, tc.input, projectPath);
   const header = inputDisplay
     ? `**Tool: ${tc.name}** (${inputDisplay})`
     : `**Tool: ${tc.name}**`;
 
+  // In filter mode, hide tool results entirely
+  if (!opts.noFilter) {
+    return header;
+  }
+
+  // In no-filter mode, show results truncated to MAX_TOOL_RESULT_LINES
   if (!tc.result) {
     return header;
   }
 
-  const { text, truncated, totalLines } = truncateLines(tc.result, opts.maxToolLines);
+  const { text, truncated, totalLines } = truncateLines(tc.result, MAX_TOOL_RESULT_LINES);
   const summaryExtra = truncated
-    ? ` (${totalLines} lines, showing first ${opts.maxToolLines})`
+    ? ` (${totalLines} lines, showing first ${MAX_TOOL_RESULT_LINES})`
     : ` (${totalLines} lines)`;
 
   return `${header}\n\n${details(`Result${summaryExtra}`, '```\n' + text + (truncated ? '\n...' : '') + '\n```', false)}`;
