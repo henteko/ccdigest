@@ -16,6 +16,16 @@ Or run directly with npx:
 npx @henteko/ccdigest list
 ```
 
+## Use Cases
+
+### Post Claude Code session log as a PR comment
+
+When you make changes with Claude Code and open a pull request, you can attach the session log as a PR comment for reviewers:
+
+```bash
+ccdigest show --branch $(git branch --show-current) | gh pr comment --body-file -
+```
+
 ## Usage
 
 ### List sessions
