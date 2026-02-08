@@ -1,6 +1,6 @@
 {
   "name": "@henteko/ccdigest",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Format Claude Code session data into readable Markdown for team sharing and code review",
   "license": "MIT",
   "author": "henteko",
