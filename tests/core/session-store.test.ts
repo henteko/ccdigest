@@ -12,8 +12,8 @@ import {
 
 describe('encodeProjectPath', () => {
   it('replaces slashes with hyphens', () => {
-    expect(encodeProjectPath('/Users/henteko/dev/flight-recorder')).toBe(
-      '-Users-henteko-dev-flight-recorder'
+    expect(encodeProjectPath('/Users/alice/dev/myproject')).toBe(
+      '-Users-alice-dev-myproject'
     );
   });
 
@@ -25,8 +25,8 @@ describe('encodeProjectPath', () => {
 describe('decodeProjectPath', () => {
   it('restores slashes from hyphens (best-effort, lossy for paths containing hyphens)', () => {
     // Note: decoding is lossy - hyphens in original path become slashes
-    expect(decodeProjectPath('-Users-henteko-dev-project')).toBe(
-      '/Users/henteko/dev/project'
+    expect(decodeProjectPath('-Users-alice-dev-project')).toBe(
+      '/Users/alice/dev/project'
     );
   });
 });

@@ -14,7 +14,7 @@ const CLAUDE_PROJECTS_DIR = path.join(os.homedir(), '.claude', 'projects');
 
 /**
  * Encode a filesystem path to the directory name format used by Claude Code.
- * e.g. "/Users/henteko/dev/flight-recorder" → "-Users-henteko-dev-flight-recorder"
+ * e.g. "/Users/alice/dev/myproject" → "-Users-alice-dev-myproject"
  */
 export function encodeProjectPath(projectPath: string): string {
   return projectPath.replace(/\//g, '-');
@@ -22,7 +22,7 @@ export function encodeProjectPath(projectPath: string): string {
 
 /**
  * Decode a Claude Code project directory name back to a filesystem path.
- * e.g. "-Users-henteko-dev-flight-recorder" → "/Users/henteko/dev/flight-recorder"
+ * e.g. "-Users-alice-dev-myproject" → "/Users/alice/dev/myproject"
  */
 export function decodeProjectPath(encoded: string): string {
   // The encoded string starts with '-' which represents the leading '/'

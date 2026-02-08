@@ -1,11 +1,11 @@
 {
-  "name": "flight-recorder",
+  "name": "ccdigest",
   "version": "0.1.0",
   "description": "Format Claude Code session data into readable Markdown for team sharing and code review",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "flight-recorder": "dist/index.js"
+    "ccdigest": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",

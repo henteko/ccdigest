@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import path from 'node:path';
 import { readEvents, parseSession } from '../../src/core/parser.js';
+import { encodeProjectPath } from '../../src/core/session-store.js';
 
 const FIXTURE_DIR = path.join(import.meta.dirname, '..', 'fixtures');
 const SIMPLE_SESSION = path.join(FIXTURE_DIR, 'simple-session.jsonl');
@@ -104,7 +105,7 @@ describe('parseSession with real data', () => {
       process.env.HOME!,
       '.claude',
       'projects',
-      '-Users-henteko-dev-flight-recorder'
+      encodeProjectPath(process.cwd())
     );
     const fs = await import('node:fs');
     const entries = fs.readdirSync(realSessionDir).filter((f: string) => f.endsWith('.jsonl'));

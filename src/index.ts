@@ -7,7 +7,7 @@ import { runExport } from './cli/commands/export.js';
 const program = new Command();
 
 program
-  .name('flight-recorder')
+  .name('ccdigest')
   .description('Format Claude Code session data into readable Markdown')
   .version('0.1.0');
 
