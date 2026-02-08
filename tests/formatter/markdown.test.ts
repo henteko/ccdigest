@@ -7,6 +7,9 @@ import {
   formatTimestamp,
   truncateLines,
   details,
+  fencedCodeBlock,
+  inlineCode,
+  escapeDetailsContent,
   formatToolInput,
   relativizePath,
 } from '../../src/formatter/templates.js';
@@ -72,6 +75,74 @@ describe('details', () => {
   });
 });
 
+describe('fencedCodeBlock', () => {
+  it('uses triple backticks by default', () => {
+    const result = fencedCodeBlock('console.log("hello")');
+    expect(result).toBe('```\nconsole.log("hello")\n```');
+  });
+
+  it('adds language identifier', () => {
+    const result = fencedCodeBlock('const x = 1', 'ts');
+    expect(result).toBe('```ts\nconst x = 1\n```');
+  });
+
+  it('uses longer fence when content contains triple backticks', () => {
+    const content = 'some code\n```\ninner block\n```\nmore code';
+    const result = fencedCodeBlock(content);
+    expect(result).toMatch(/^````\n/);
+    expect(result).toMatch(/\n````$/);
+  });
+
+  it('uses even longer fence for nested fences', () => {
+    const content = '````\ndeep\n````';
+    const result = fencedCodeBlock(content);
+    expect(result).toMatch(/^`````\n/);
+    expect(result).toMatch(/\n`````$/);
+  });
+});
+
+describe('inlineCode', () => {
+  it('uses single backtick for simple text', () => {
+    expect(inlineCode('foo')).toBe('`foo`');
+  });
+
+  it('uses double backticks when content contains a backtick', () => {
+    expect(inlineCode('echo `date`')).toBe('`` echo `date` ``');
+  });
+
+  it('adds spaces when content starts with backtick', () => {
+    expect(inlineCode('`start')).toBe('`` `start ``');
+  });
+
+  it('adds spaces when content ends with backtick', () => {
+    expect(inlineCode('end`')).toBe('`` end` ``');
+  });
+});
+
+describe('escapeDetailsContent', () => {
+  it('escapes </details> tag', () => {
+    const result = escapeDetailsContent('text </details> more');
+    expect(result).toBe('text &lt;/details> more');
+    expect(result).not.toContain('</details>');
+  });
+
+  it('escapes </summary> tag', () => {
+    const result = escapeDetailsContent('text </summary> more');
+    expect(result).toBe('text &lt;/summary> more');
+  });
+
+  it('is case insensitive', () => {
+    const result = escapeDetailsContent('</Details> </SUMMARY>');
+    expect(result).not.toContain('</Details>');
+    expect(result).not.toContain('</SUMMARY>');
+  });
+
+  it('leaves other HTML tags alone', () => {
+    const result = escapeDetailsContent('<div>hello</div>');
+    expect(result).toBe('<div>hello</div>');
+  });
+});
+
 describe('relativizePath', () => {
   it('relativizes a path under the project', () => {
     expect(relativizePath('/Users/test/project/src/main.ts', '/Users/test/project'))
@@ -110,6 +181,10 @@ describe('formatToolInput', () => {
 
   it('formats Bash tool input', () => {
     expect(formatToolInput('Bash', { command: 'npm test' })).toBe('`npm test`');
+  });
+
+  it('formats Bash tool input with backticks safely', () => {
+    expect(formatToolInput('Bash', { command: 'echo `date`' })).toBe('`` echo `date` ``');
   });
 
   it('formats Task tool input', () => {

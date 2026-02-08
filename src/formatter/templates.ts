@@ -47,6 +47,57 @@ export function details(summary: string, content: string, open = false): string 
 }
 
 /**
+ * Find the longest consecutive backtick sequence in text.
+ */
+function longestBacktickRun(text: string): number {
+  let max = 0;
+  let current = 0;
+  for (const ch of text) {
+    if (ch === '`') {
+      current++;
+      if (current > max) max = current;
+    } else {
+      current = 0;
+    }
+  }
+  return max;
+}
+
+/**
+ * Wrap text in a fenced code block, using a fence longer than any
+ * backtick sequence found in the content.
+ */
+export function fencedCodeBlock(text: string, lang = ''): string {
+  const fenceLen = Math.max(3, longestBacktickRun(text) + 1);
+  const fence = '`'.repeat(fenceLen);
+  return `${fence}${lang}\n${text}\n${fence}`;
+}
+
+/**
+ * Wrap text in inline code, using enough backticks to avoid collision
+ * with backticks in the content.
+ */
+export function inlineCode(text: string): string {
+  const needed = longestBacktickRun(text) + 1;
+  const ticks = '`'.repeat(needed);
+  // Spec: if content starts or ends with a backtick, add a space
+  if (text.startsWith('`') || text.endsWith('`')) {
+    return `${ticks} ${text} ${ticks}`;
+  }
+  return `${ticks}${text}${ticks}`;
+}
+
+/**
+ * Escape HTML tags that would break a <details> wrapper.
+ * Replaces </details> and </summary> with HTML-entity-escaped versions.
+ */
+export function escapeDetailsContent(text: string): string {
+  return text
+    .replace(/<\/details>/gi, '&lt;/details>')
+    .replace(/<\/summary>/gi, '&lt;/summary>');
+}
+
+/**
  * Relativize a file path against the project path.
  * If the file path starts with the project path, return the relative portion.
  */
@@ -76,28 +127,28 @@ export function formatToolInput(name: string, input: Record<string, unknown>, pr
   // Show the most relevant parameter based on tool name
   switch (name) {
     case 'Read':
-      return input.file_path ? `\`${formatPath(input.file_path)}\`` : '';
+      return input.file_path ? inlineCode(formatPath(input.file_path)) : '';
     case 'Write':
-      return input.file_path ? `\`${formatPath(input.file_path)}\`` : '';
+      return input.file_path ? inlineCode(formatPath(input.file_path)) : '';
     case 'Edit':
-      return input.file_path ? `\`${formatPath(input.file_path)}\`` : '';
+      return input.file_path ? inlineCode(formatPath(input.file_path)) : '';
     case 'Bash':
-      return input.command ? `\`${String(input.command).substring(0, 100)}\`` : '';
+      return input.command ? inlineCode(String(input.command).substring(0, 100)) : '';
     case 'Glob':
-      return input.pattern ? `\`${input.pattern}\`` : '';
+      return input.pattern ? inlineCode(String(input.pattern)) : '';
     case 'Grep':
-      return input.pattern ? `\`${input.pattern}\`` : '';
+      return input.pattern ? inlineCode(String(input.pattern)) : '';
     case 'Task':
       return input.description ? `"${input.description}"` : '';
     case 'WebFetch':
-      return input.url ? `\`${input.url}\`` : '';
+      return input.url ? inlineCode(String(input.url)) : '';
     case 'WebSearch':
       return input.query ? `"${input.query}"` : '';
     default:
       // Generic: show first string parameter
       for (const [, val] of Object.entries(input)) {
         if (typeof val === 'string' && val.length > 0) {
-          return `\`${val.substring(0, 80)}\``;
+          return inlineCode(val.substring(0, 80));
         }
       }
       return '';

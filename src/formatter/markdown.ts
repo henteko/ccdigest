@@ -11,6 +11,8 @@ import {
   formatTimestamp,
   truncateLines,
   details,
+  fencedCodeBlock,
+  escapeDetailsContent,
   formatToolInput,
 } from './templates.js';
 
@@ -132,7 +134,7 @@ function renderAssistantMessage(
 
   // Thinking blocks: hidden in filter mode, collapsed in no-filter mode
   if (opts.noFilter && msg.thinkingBlocks.length > 0) {
-    const thinking = msg.thinkingBlocks.join('\n\n');
+    const thinking = escapeDetailsContent(msg.thinkingBlocks.join('\n\n'));
     parts.push(details('Thinking', thinking, false));
   }
 
@@ -171,6 +173,7 @@ function renderToolCall(tc: ToolCall, opts: FormatOptions): string {
   const summaryExtra = truncated
     ? ` (${totalLines} lines, showing first ${MAX_TOOL_RESULT_LINES})`
     : ` (${totalLines} lines)`;
+  const codeContent = truncated ? text + '\n...' : text;
 
-  return `${header}\n\n${details(`Result${summaryExtra}`, '```\n' + text + (truncated ? '\n...' : '') + '\n```', false)}`;
+  return `${header}\n\n${details(`Result${summaryExtra}`, fencedCodeBlock(codeContent), false)}`;
 }
