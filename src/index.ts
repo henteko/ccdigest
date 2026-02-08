@@ -28,8 +28,9 @@ const showFormatOptions = (cmd: Command) =>
 
 showFormatOptions(
   program
-    .command('show <session-ids...>')
+    .command('show [session-ids...]')
     .description('Display session(s) as Markdown (stdout). Multiple IDs are merged chronologically.')
+    .option('--branch <name>', 'Show all sessions for a git branch')
 ).action(runShow);
 
 

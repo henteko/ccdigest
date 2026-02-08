@@ -1,4 +1,4 @@
-import { findSession } from '../../core/session-store.js';
+import { findSession, listSessions } from '../../core/session-store.js';
 import { parseSession } from '../../core/parser.js';
 import { mergeSessions } from '../../core/merger.js';
 import { formatSession } from '../../formatter/markdown.js';
@@ -6,13 +6,30 @@ import { resolveFormatOptions, type ShowOptions } from '../options.js';
 
 export async function runShow(
   sessionIds: string[],
-  options: ShowOptions & { project?: string }
+  options: ShowOptions & { project?: string; branch?: string }
 ): Promise<void> {
   const projectPath = options.project || process.cwd();
 
   try {
+    let resolvedIds = sessionIds;
+
+    if (options.branch) {
+      const sessions = listSessions(projectPath)
+        .filter((s) => s.branch === options.branch);
+
+      if (sessions.length === 0) {
+        throw new Error(`No sessions found for branch "${options.branch}"`);
+      }
+
+      resolvedIds = [...resolvedIds, ...sessions.map((s) => s.sessionId)];
+    }
+
+    if (resolvedIds.length === 0) {
+      throw new Error('Specify at least one session ID or use --branch <name>');
+    }
+
     const parsedSessions = await Promise.all(
-      sessionIds.map(async (id) => {
+      resolvedIds.map(async (id) => {
         const session = findSession(projectPath, id);
         return parseSession(session.filePath);
       })

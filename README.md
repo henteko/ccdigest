@@ -31,6 +31,7 @@ ccdigest list --json
 ```bash
 ccdigest show <session-id>
 ccdigest show <session-id-1> <session-id-2>  # merge multiple sessions
+ccdigest show --branch feature/login          # show all sessions for a branch
 ```
 
 ### Export to file
@@ -38,6 +39,7 @@ ccdigest show <session-id-1> <session-id-2>  # merge multiple sessions
 ```bash
 ccdigest show <session-id> > output.md
 ccdigest show <id-1> <id-2> > combined.md
+ccdigest show --branch feature/login > branch.md
 ```
 
 ### Options
@@ -45,6 +47,7 @@ ccdigest show <id-1> <id-2> > combined.md
 | Option | Description |
 |--------|-------------|
 | `--project <path>` | Project path (defaults to cwd) |
+| `--branch <name>` | Show all sessions for a git branch (show) / Filter by branch (list) |
 | `--no-thinking` | Hide thinking blocks |
 | `--show-thinking` | Show thinking blocks expanded |
 | `--no-tools` | Hide tool calls |
