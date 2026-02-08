@@ -36,8 +36,8 @@ ccdigest show <session-id-1> <session-id-2>  # merge multiple sessions
 ### Export to file
 
 ```bash
-ccdigest export <session-id> -o output.md
-ccdigest export <id-1> <id-2> -o combined.md
+ccdigest show <session-id> > output.md
+ccdigest show <id-1> <id-2> > combined.md
 ```
 
 ### Options

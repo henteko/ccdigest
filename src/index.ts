@@ -2,7 +2,6 @@
 import { Command } from 'commander';
 import { runList } from './cli/commands/list.js';
 import { runShow } from './cli/commands/show.js';
-import { runExport } from './cli/commands/export.js';
 
 const program = new Command();
 
@@ -33,11 +32,5 @@ showFormatOptions(
     .description('Display session(s) as Markdown (stdout). Multiple IDs are merged chronologically.')
 ).action(runShow);
 
-showFormatOptions(
-  program
-    .command('export <session-ids...>')
-    .description('Export session(s) to a Markdown file. Multiple IDs are merged chronologically.')
-    .requiredOption('-o, --output <file>', 'Output file path')
-).action(runExport);
 
 program.parse();
