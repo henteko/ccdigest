@@ -99,7 +99,7 @@ describe('parseSession', () => {
   });
 });
 
-describe('parseSession with real data', () => {
+describe.skipIf(!process.env.CCDIGEST_INTEGRATION)('parseSession with real data', () => {
   it('parses real session file without errors', async () => {
     const realSessionDir = path.join(
       process.env.HOME!,

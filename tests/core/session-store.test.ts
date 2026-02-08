@@ -109,7 +109,7 @@ describe('findSession', () => {
   });
 });
 
-describe('listSessions integration', () => {
+describe.skipIf(!process.env.CCDIGEST_INTEGRATION)('listSessions integration', () => {
   it('lists real sessions for current project', () => {
     const sessions = listSessions(process.cwd());
     // We should have some sessions from the Claude Code usage on this project
@@ -132,7 +132,7 @@ describe('listSessions integration', () => {
   });
 });
 
-describe('findSession integration', () => {
+describe.skipIf(!process.env.CCDIGEST_INTEGRATION)('findSession integration', () => {
   it('finds session by prefix', () => {
     const sessions = listSessions(process.cwd());
     if (sessions.length === 0) return;
