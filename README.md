@@ -7,13 +7,13 @@ Claude Code stores session logs as JSONL files under `~/.claude/projects/`. ccdi
 ## Installation
 
 ```bash
-npm install -g ccdigest
+npm install -g @henteko/ccdigest
 ```
 
 Or run directly with npx:
 
 ```bash
-npx ccdigest list
+npx @henteko/ccdigest list
 ```
 
 ## Usage
@@ -57,6 +57,28 @@ npm install
 npm run build
 npm test
 ```
+
+## Release
+
+1. Update version in `package.json`:
+
+```bash
+npm version patch  # or minor, major
+```
+
+2. Push the tag:
+
+```bash
+git push origin main --tags
+```
+
+3. Publish to npm:
+
+```bash
+npm publish --access public
+```
+
+`prepublishOnly` hook will automatically run build and tests before publishing.
 
 ## License
 

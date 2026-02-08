@@ -1,5 +1,5 @@
 {
-  "name": "ccdigest",
+  "name": "@henteko/ccdigest",
   "version": "0.1.0",
   "description": "Format Claude Code session data into readable Markdown for team sharing and code review",
   "license": "MIT",
@@ -25,11 +25,15 @@
     "LICENSE",
     "README.md"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build && npm test"
   },
   "dependencies": {
     "commander": "^13.1.0"
