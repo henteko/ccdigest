@@ -211,11 +211,12 @@ describe('formatSession (default filter mode)', () => {
     expect(md).not.toContain('user wants me to read');
   });
 
-  it('shows tool names with relativized paths', async () => {
+  it('hides tool calls from intermediate assistant messages', async () => {
     const session = await parseSession(SIMPLE_SESSION);
     const md = formatSession(session, { projectPath: '/Users/test/project' });
 
-    expect(md).toContain('**Tool: Read** (`README.md`)');
+    // Tool call was in an intermediate assistant message, so it should be hidden
+    expect(md).not.toContain('**Tool: Read**');
   });
 
   it('hides tool results', async () => {
@@ -226,12 +227,15 @@ describe('formatSession (default filter mode)', () => {
     expect(md).not.toContain('This is a test project');
   });
 
-  it('shows user and assistant messages', async () => {
+  it('shows user message and only last assistant message', async () => {
     const session = await parseSession(SIMPLE_SESSION);
     const md = formatSession(session, { projectPath: '/Users/test/project' });
 
     expect(md).toContain('> Hello, please read the README file.');
-    expect(md).toContain("I'll read the README for you.");
+    // Intermediate assistant message text should be hidden
+    expect(md).not.toContain("I'll read the README for you.");
+    // Last assistant message text should be shown
+    expect(md).toContain("Here's the README content:");
     expect(md).toContain("I've added Feature 3");
   });
 
@@ -255,26 +259,29 @@ describe('formatSession (no-filter mode)', () => {
     expect(md).toContain('**Project**: `/Users/test/project`');
   });
 
-  it('shows thinking blocks collapsed', async () => {
+  it('hides thinking blocks from intermediate assistant messages', async () => {
     const session = await parseSession(SIMPLE_SESSION);
     const md = formatSession(session, { noFilter: true, projectPath: '/Users/test/project' });
 
-    expect(md).toContain('<details><summary>Thinking</summary>');
-    expect(md).toContain('user wants me to read');
+    // Thinking was in an intermediate assistant message, so it should be hidden
+    expect(md).not.toContain('<details><summary>Thinking</summary>');
+    expect(md).not.toContain('user wants me to read');
   });
 
-  it('shows tool names with full paths', async () => {
+  it('hides tool calls from intermediate assistant messages', async () => {
     const session = await parseSession(SIMPLE_SESSION);
     const md = formatSession(session, { noFilter: true, projectPath: '/Users/test/project' });
 
-    expect(md).toContain('**Tool: Read** (`/Users/test/project/README.md`)');
+    // Tool call was in an intermediate assistant message, so it should be hidden
+    expect(md).not.toContain('**Tool: Read**');
   });
 
-  it('shows tool results', async () => {
+  it('hides tool results from intermediate assistant messages', async () => {
     const session = await parseSession(SIMPLE_SESSION);
     const md = formatSession(session, { noFilter: true, projectPath: '/Users/test/project' });
 
-    expect(md).toContain('<summary>Result');
-    expect(md).toContain('This is a test project');
+    // Tool result was in an intermediate assistant message, so it should be hidden
+    expect(md).not.toContain('<summary>Result');
+    expect(md).not.toContain('This is a test project');
   });
 });

@@ -119,9 +119,10 @@ function renderTurn(turn: ConversationTurn, opts: FormatOptions): string {
       .join('\n')
   );
 
-  // Assistant messages
-  for (const msg of turn.assistantMessages) {
-    parts.push(renderAssistantMessage(msg, opts));
+  // Assistant message: only show the last one (skip intermediate tool-use-only messages)
+  if (turn.assistantMessages.length > 0) {
+    const lastMsg = turn.assistantMessages[turn.assistantMessages.length - 1];
+    parts.push(renderAssistantMessage(lastMsg, opts));
   }
 
   return parts.join('\n\n');
